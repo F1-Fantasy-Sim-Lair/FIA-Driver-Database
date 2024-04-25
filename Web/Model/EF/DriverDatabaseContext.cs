@@ -6,6 +6,8 @@ namespace Web.Model.EF;
 
 public class DriverDatabaseContext(DbContextOptions options) : DbContext(options)
 {
+    public DbSet<Driver> Drivers { get; set; }
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<Snowflake>().HaveConversion<SnowflakeConverter>();
