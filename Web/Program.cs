@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Web.Model.EF;
 
 namespace Web;
 
@@ -8,6 +10,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddKeyedSingleton<List<string>>(CollectionNames.Drivers);
+        builder.Services.AddDbContext<DriverDatabaseContext>(options =>
+            options.UseSqlite(builder.Configuration.GetConnectionString("DriverDatabaseContext") ?? throw new InvalidOperationException("Connection string 'DriverDatabaseContext' not found.")));
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
