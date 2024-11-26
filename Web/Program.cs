@@ -23,10 +23,16 @@ public class Program
         builder.Services.AddIdGen(1);
         builder.Services.AddSingleton<GenerateId>(sp => () => new(sp.GetRequiredService<IIdGenerator<long>>().CreateId()));
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers().AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new SnowflakeJsonConverter());
+        });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.MapType<Snowflake>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string" }); // JavaScript can't properly handle 64-bit integers, so convert snowflake IDs to string
+        });
 
         var app = builder.Build();
 
