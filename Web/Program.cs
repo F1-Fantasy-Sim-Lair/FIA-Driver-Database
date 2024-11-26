@@ -1,6 +1,9 @@
 using IdGen;
 using IdGen.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Web.Model.EF;
 using Web.Model.Repository;
 using Web.Types;
@@ -36,6 +39,8 @@ public class Program
 
         var app = builder.Build();
 
+        MigrateDatabase<DriverDatabaseContext>(app.Services);
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
@@ -51,5 +56,35 @@ public class Program
         app.MapControllers();
 
         app.Run();
+    }
+
+    // See https://gist.github.com/Tim-Hodge/eea0601a14177c199fe60557eeeff31e
+    // and https://medium.com/@floyd.may/ef-core-app-migrate-on-startup-d046afdba258
+    static void MigrateDatabase<TContext>(IServiceProvider appServices) where TContext : DbContext
+    {
+        using var scope = appServices.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<TContext>();
+
+        var dbServices = dbContext.GetInfrastructure();
+
+        var modelDiffer = dbServices.GetRequiredService<IMigrationsModelDiffer>();
+        var migrationsAssembly = dbServices.GetRequiredService<IMigrationsAssembly>();
+
+        var modelInitializer = dbServices.GetRequiredService<IModelRuntimeInitializer>();
+        var sourceModel = modelInitializer.Initialize(migrationsAssembly.ModelSnapshot!.Model);
+
+        var designTimeModel = dbServices.GetRequiredService<IDesignTimeModel>();
+        var readOptimizedModel = designTimeModel.Model;
+
+        var diffsExist = modelDiffer.HasDifferences(
+            sourceModel.GetRelationalModel(),
+            readOptimizedModel.GetRelationalModel());
+
+        if (diffsExist)
+        {
+            throw new InvalidOperationException("There are differences between the current database model and the most recent migration.");
+        }
+
+        dbContext.Database.Migrate();
     }
 }
