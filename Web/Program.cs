@@ -16,8 +16,10 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddScoped<IUnitOfWork, DefaultUnitOfWork>();
-        builder.Services.AddDbContext<DriverDatabaseContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DriverDatabaseContext") ?? throw new InvalidOperationException("Connection string 'DriverDatabaseContext' not found.")));
+        builder.Services.AddDbContext<DriverDatabaseContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DriverDatabaseContext") ?? throw new InvalidOperationException("Connection string 'DriverDatabaseContext' not found."))
+                .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
+                .EnableDetailedErrors(builder.Environment.IsDevelopment()));
+
         builder.Services.AddIdGen(1);
         builder.Services.AddSingleton<GenerateId>(sp => () => new(sp.GetRequiredService<IIdGenerator<long>>().CreateId()));
 
