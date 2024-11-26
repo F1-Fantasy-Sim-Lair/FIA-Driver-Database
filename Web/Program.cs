@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Web.Model.EF;
+using Web.Model.Repository;
 
 namespace Web;
 
@@ -9,7 +10,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddKeyedSingleton<List<string>>(CollectionNames.Drivers);
+        builder.Services.AddScoped<IUnitOfWork, DefaultUnitOfWork>();
         builder.Services.AddDbContext<DriverDatabaseContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DriverDatabaseContext") ?? throw new InvalidOperationException("Connection string 'DriverDatabaseContext' not found.")));
 
