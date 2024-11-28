@@ -397,3 +397,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .idea
+
+fiadriverdatabase.db
+fiadriverdatabase.db-shm
+fiadriverdatabase.db-wal

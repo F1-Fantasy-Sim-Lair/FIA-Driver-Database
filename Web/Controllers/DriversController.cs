@@ -1,28 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Web.Model;
+using Web.Model.Repository;
+using Web.Types;
+using Web.Utils;
 
 namespace Web.Controllers;
 
-public record class DriverResponse(long Id, string Name);
+public record class DriverResponse(Snowflake Id, string Name);
 public record class UpdateDriverRequest(string Name);
 
 [Route("[controller]")]
-public class DriversController([FromKeyedServices(CollectionNames.Drivers)] List<string> drivers) : ControllerBase
+public class DriversController(IUnitOfWork unitOfWork) : ControllerBase
 {
-    readonly List<string> drivers = drivers;
+    readonly IUnitOfWork unitOfWork = unitOfWork;
 
     [HttpGet]
-    public IActionResult ListAllDrivers() => Ok(drivers.Select((name, idx) => new DriverResponse(idx + 1, name)).ToList());
+    public async Task<IActionResult> ListAllDrivers() => Ok(await unitOfWork.Repository<Driver>().Query().Select(d => new DriverResponse(d.DriverId, d.Name)).ToListAsync());
 
     [HttpGet("{id}")]
-    public IActionResult FindDriverById(int id) => drivers.Count < id ? NotFound() : Ok(new DriverResponse(id, drivers[id - 1]));
+    public async Task<IActionResult> FindDriverById([FromRoute] Snowflake id)
+    {
+        var driver = await unitOfWork.Repository<Driver>().GetByIdAsync(id);
+        if (driver == null)
+            return NotFound();
+
+        return Ok(new DriverResponse(driver.DriverId, driver.Name));
+    }
 
     [HttpPost]
-    public IActionResult AddDriver([FromBody] UpdateDriverRequest updateDriverRequest)
+    public async Task<IActionResult> AddDriver([FromBody] UpdateDriverRequest updateDriverRequest, [FromServices] GenerateId generateId)
     {
-        lock (drivers)
+        var driver = new Driver(generateId())
         {
-            drivers.Add(updateDriverRequest.Name);
-            return CreatedAtAction(nameof(FindDriverById), new { id = drivers.Count }, new DriverResponse(drivers.Count, drivers.Last()));
-        }
+            Name = updateDriverRequest.Name,
+        };
+
+        unitOfWork.Repository<Driver>().Add(driver);
+        await unitOfWork.CompleteAsync();
+        return CreatedAtAction(nameof(FindDriverById), new { id = driver.DriverId }, new DriverResponse(driver.DriverId, driver.Name));
     }
 }
