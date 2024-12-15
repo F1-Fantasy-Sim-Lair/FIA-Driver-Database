@@ -49,6 +49,44 @@ internal class AuthorizeTests
         controllerCallbackResp.Headers.Location.Should().NotBeNull();
     }
 
+    [Test]
+    public async Task CanLogoutWhenAuthorized()
+    {
+        using var client = new WebApplicationFactory()
+            .WithWebHostBuilder(ConfigureDiscordAuthForTesting)
+            .CreateClient(clientOptions);
+
+        // Use a smaller version of the CanAuthorizeWithANewAccount test to authorize the user
+        // This is necessary because the user must be authorized to log out
+        // That behavior means this test doubles as an integration test for authorization checking
+        using var initiateDiscordAuthReq = new HttpRequestMessage(HttpMethod.Get, "login");
+        using var initiateDiscordAuthResp = await client.SendAsync(initiateDiscordAuthReq);
+        var queryParams = UriHelpers.GetQueryParams(initiateDiscordAuthResp.Headers.Location!);
+
+        var authHandlerUri = new UriBuilder(Uri.UnescapeDataString(queryParams["redirect_uri"]));
+        authHandlerUri.Query += $"state={queryParams["state"]}&code=1234";
+        using var discordCallbackReq = new HttpRequestMessage(HttpMethod.Post, authHandlerUri.Uri);
+        using var discordCallbackResp = await client.SendAsync(discordCallbackReq);
+
+        using var controllerCallbackReq = new HttpRequestMessage(HttpMethod.Get, discordCallbackResp.Headers.Location!);
+        using var controllerCallbackResp = await client.SendAsync(controllerCallbackReq);
+
+        // Now that the user is authorized, log out
+        using var logoutReq = new HttpRequestMessage(HttpMethod.Get, "logout");
+        using var logoutResp = await client.SendAsync(logoutReq);
+        logoutResp.Should().BeRedirection();
+    }
+
+    [Test]
+    public async Task CannotLogoutWhenNotAuthorized()
+    {
+        using var client = new WebApplicationFactory()
+            .CreateClient(clientOptions);
+
+        using var loginReq = new HttpRequestMessage(HttpMethod.Get, "logout");
+        using var loginResp = await client.SendAsync(loginReq);
+        loginResp.Should().Be401Unauthorized();
+    }
     static void ConfigureDiscordAuthForTesting(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
