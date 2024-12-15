@@ -12,7 +12,8 @@ internal class WebApplicationFactory : WebApplicationFactory<Program>
     {
         var configDict = new Dictionary<string, string?>
         {
-            { "ConnectionStrings:DriverDatabaseContext", "Data Source=fiadriverdatabase.db" }
+            { "ConnectionStrings:DriverDatabaseContext", "Data Source=fiadriverdatabase.db" },
+            { "Database:MigrateOnStartup", "false" }
         };
         builder.ConfigureAppConfiguration(config => config.AddInMemoryCollection(configDict));
     }

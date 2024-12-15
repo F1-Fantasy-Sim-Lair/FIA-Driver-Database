@@ -40,7 +40,10 @@ public class Program
 
         var app = builder.Build();
 
-        MigrateDatabase<DriverDatabaseContext>(app.Services);
+        if (builder.Configuration.GetValue("Database:MigrateOnStartup", false))
+        {
+            MigrateDatabase<DriverDatabaseContext>(app.Services);
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
