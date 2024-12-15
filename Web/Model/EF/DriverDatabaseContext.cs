@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Web.Types;
 
 namespace Web.Model.EF;
 
-public class DriverDatabaseContext(DbContextOptions options) : DbContext(options)
+public class DriverDatabaseContext(DbContextOptions options) : IdentityDbContext(options)
 {
     public DbSet<Driver> Drivers { get; set; }
 
