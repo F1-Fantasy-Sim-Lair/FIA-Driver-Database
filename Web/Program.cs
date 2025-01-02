@@ -25,11 +25,12 @@ public class Program
 
         builder.Services.AddIdGen(1);
         builder.Services.AddSingleton<GenerateId>(sp => () => new(sp.GetRequiredService<IIdGenerator<long>>().CreateId()));
-
+        builder.Services.AddDriverDatabaseIdentity(builder.Configuration);
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new SnowflakeJsonConverter());
         });
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -39,7 +40,10 @@ public class Program
 
         var app = builder.Build();
 
-        MigrateDatabase<DriverDatabaseContext>(app.Services);
+        if (builder.Configuration.GetValue("Database:MigrateOnStartup", false))
+        {
+            MigrateDatabase<DriverDatabaseContext>(app.Services);
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -50,8 +54,8 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
-
 
         app.MapControllers();
 

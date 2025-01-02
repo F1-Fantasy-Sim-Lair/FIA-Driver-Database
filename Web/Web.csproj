@@ -9,8 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.Discord" Version="8.3.0" />
     <PackageReference Include="IdGen" Version="3.0.7" />
     <PackageReference Include="IdGen.DependencyInjection" Version="3.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
