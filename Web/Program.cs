@@ -32,6 +32,8 @@ public class Program
         {
             opts.AddPolicy(Policies.IsDirector, policy => policy.RequireRole(Roles.DirectorRole));
         });
+        builder.Services.AddAutomaticRoleUpdates(builder.Configuration.GetRequiredSection(RolesConfiguration.ConfigurationSection));
+
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new SnowflakeJsonConverter());
