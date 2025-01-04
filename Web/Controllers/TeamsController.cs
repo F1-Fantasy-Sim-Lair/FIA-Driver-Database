@@ -14,7 +14,7 @@ public class TeamsController(IUnitOfWork unitOfWork) : ControllerBase
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork;
 
-    [HttpGet, Authorize]
+    [HttpGet, Authorize(Policy = "IsDirector")]
     public async Task<IActionResult> GetAllTeams()
     {
         return Ok(await unitOfWork.Repository<Team>().Query().Select(t => new TeamResponse(t.TeamId, t.Name)).ToListAsync());
