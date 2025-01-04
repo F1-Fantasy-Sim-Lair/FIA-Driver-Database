@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Web.Model.EF;
 
-namespace Web;
+namespace Web.Authorization;
 
 static class DriverDatabaseIdentityExtensions
 {
