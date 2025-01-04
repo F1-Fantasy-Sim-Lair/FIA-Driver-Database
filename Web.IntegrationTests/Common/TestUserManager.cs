@@ -9,13 +9,17 @@ internal class TestUserManager(WebApplicationFactory webApplicationFactory, ISer
     readonly WebApplicationFactory webApplicationFactory = webApplicationFactory;
     readonly IServiceProvider serviceProvider = serviceProvider;
 
-    public async Task<IdentityUser> CreateUser(string username)
+    public async Task<IdentityUser> CreateUser(string username, string? role = null)
     {
         using var serviceScope = serviceProvider.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         var currentUser = new IdentityUser();
         await userManager.SetUserNameAsync(currentUser, username);
         await userManager.CreateAsync(currentUser);
+
+        if (role is not null)
+            await userManager.AddToRoleAsync(currentUser, role);
+
         return currentUser;
     }
 

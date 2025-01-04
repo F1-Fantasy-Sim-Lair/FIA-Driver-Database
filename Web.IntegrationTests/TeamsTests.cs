@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Web.Authorization;
 using Web.IntegrationTests.Common;
 
 namespace Web.IntegrationTests;
@@ -23,7 +24,8 @@ public class TeamsTests
     {
         // Arrange
         using var factory = new WebApplicationFactory();
-        using var client = factory.CreateAuthenticatedClient(await factory.TestUsers.GetPrincipal("testuser"));
+        await factory.TestUsers.CreateUser("director1", Roles.DirectorRole);
+        using var client = factory.CreateAuthenticatedClient(await factory.TestUsers.GetPrincipal("director1"));
         using var request = new HttpRequestMessage(HttpMethod.Get, "teams");
 
         // Act
