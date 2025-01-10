@@ -1,9 +1,11 @@
 using IdGen;
 using IdGen.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Web.Authorization;
 using Web.Model.EF;
 using Web.Model.Repository;
 using Web.Types;
@@ -26,6 +28,12 @@ public class Program
         builder.Services.AddIdGen(1);
         builder.Services.AddSingleton<GenerateId>(sp => () => new(sp.GetRequiredService<IIdGenerator<long>>().CreateId()));
         builder.Services.AddDriverDatabaseIdentity(builder.Configuration);
+        builder.Services.AddAuthorization(opts =>
+        {
+            opts.AddPolicy(Policies.IsDirector, policy => policy.RequireRole(Roles.DirectorRole));
+        });
+        builder.Services.AddAutomaticRoleUpdates(builder.Configuration.GetRequiredSection(RolesConfiguration.ConfigurationSection));
+
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new SnowflakeJsonConverter());
